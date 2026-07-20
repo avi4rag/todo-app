@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import TodoItem from "../components/TodoItem";
 
 export default function Dashboard() {
   const [todos, setTodos] = useState([]);
@@ -36,10 +37,14 @@ export default function Dashboard() {
     await api.delete(`/todos/${id}`);
     setTodos(todos.filter((t) => t._id !== id));
   };
+  const updateTodo = async (id, updates) => {
+    const res = await api.put(`/todos/${id}`, updates);
+    setTodos(todos.map((t) => (t._id === id ? res.data : t)));
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+      <div className="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-xl font-bold">Hi, {user?.username}</h1>
           <button onClick={logout} className="text-sm text-red-500">
@@ -62,29 +67,13 @@ export default function Dashboard() {
 
         <ul className="space-y-2">
           {todos.map((todo) => (
-            <li
+            <TodoItem
               key={todo._id}
-              className="flex items-center justify-between border-b pb-2"
-            >
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={todo.completed}
-                  onChange={() => toggleTodo(todo)}
-                />
-                <span
-                  className={todo.completed ? "line-through text-gray-400" : ""}
-                >
-                  {todo.text}
-                </span>
-              </div>
-              <button
-                onClick={() => deleteTodo(todo._id)}
-                className="text-red-500 text-sm"
-              >
-                Delete
-              </button>
-            </li>
+              todo={todo}
+              onToggle={toggleTodo}
+              onDelete={deleteTodo}
+              onUpdate={updateTodo}
+            />
           ))}
         </ul>
       </div>
